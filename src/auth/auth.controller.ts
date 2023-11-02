@@ -1,11 +1,9 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { CreateUserDto, LoginUserDto } from './dto';
-import { AuthGuard } from '@nestjs/passport';
-import { User } from './entities/user.entity';
-import { GetUser } from './decorators/get-user.decorator';
-import { Auth } from './decorators';
-import { ValidRoles } from './interfaces';
+import { Body, Controller, Get, Post } from "@nestjs/common";
+import { AuthService } from "./auth.service";
+import { CreateUserDto, LoginUserDto } from "./dto";
+import { Auth, GetUser } from "./decorators";
+import { ValidRoles } from "./interfaces";
+import { User } from "./entities/user.entity";
 
 @Controller('auth')
 export class AuthController {
@@ -19,6 +17,15 @@ export class AuthController {
   @Post('login')
   loginUser(@Body() loginUserDto: LoginUserDto) {
     return this.authService.login(loginUserDto);
+  }
+
+  @Get('private')
+  @Auth(ValidRoles.admin, ValidRoles.superUser)
+  privateRoute(@GetUser() user: User) {
+    return {
+      ok: true,
+      user,
+    }
   }
 
   @Get()

@@ -1,10 +1,12 @@
 import {
   IsEmail,
+  IsOptional,
   IsString,
   Matches,
   MaxLength,
   MinLength,
 } from 'class-validator';
+import { CreateBillingDto } from '../../billing/dto/create-billing.dto';
 
 export class CreateUserDto {
   @IsString()
@@ -27,4 +29,7 @@ export class CreateUserDto {
   @IsString()
   @MinLength(1)
   lastname: string;
+
+  @IsOptional()
+  billing?: CreateBillingDto;
 }

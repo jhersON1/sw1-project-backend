@@ -3,8 +3,10 @@ import {
   BeforeUpdate,
   Column,
   Entity,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Billing } from '../../billing/entities/billing.entity';
 
 @Entity('users')
 export class User {
@@ -37,6 +39,12 @@ export class User {
     default: ['user'],
   })
   roles: string[];
+
+  @OneToOne(() => Billing, (billing) => billing.user, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  billing: Billing;
 
   @BeforeInsert()
   checkFieldsBeforeInsert() {
