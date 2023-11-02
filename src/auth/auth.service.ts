@@ -11,6 +11,7 @@ import { User } from './entities/user.entity';
 import { CreateUserDto, LoginUserDto } from './dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { JwtService } from '@nestjs/jwt';
+import { Billing } from "../billing/entities/billing.entity";
 
 @Injectable()
 export class AuthService {
@@ -28,6 +29,7 @@ export class AuthService {
       const user = this.userRepository.create({
         ...userData,
         password: bcrypt.hashSync(password, 10),
+        billing: new Billing(),
       });
 
       await this.userRepository.save(user);
