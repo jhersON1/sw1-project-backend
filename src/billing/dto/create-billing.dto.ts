@@ -1,10 +1,10 @@
 import {
-  IsDate,
+  IsDate, IsDateString,
   IsEnum,
   IsNumber,
   IsOptional,
-  IsString,
-} from 'class-validator';
+  IsString
+} from "class-validator";
 import { ValidPlans, ValidPrices } from '../interfaces';
 
 export class CreateBillingDto {
@@ -18,13 +18,13 @@ export class CreateBillingDto {
   @IsOptional()
   imageQuantity?: number;
 
-  @IsDate()
   @IsOptional()
-  startDate?: Date;
+  @IsDateString()
+  startDate: string;
 
-  @IsDate()
   @IsOptional()
-  endDate?: Date;
+  @IsDateString()
+  endDate: Date;
 
   @IsString()
   @IsOptional()
