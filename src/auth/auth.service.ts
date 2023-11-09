@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -12,6 +13,8 @@ import { CreateUserDto, LoginUserDto } from './dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { JwtService } from '@nestjs/jwt';
 import { Billing } from "../billing/entities/billing.entity";
+import { UpdateUserDto } from './dto/update-user.dto';
+import passport from 'passport';
 
 @Injectable()
 export class AuthService {
@@ -52,7 +55,7 @@ export class AuthService {
 
     const user = await this.userRepository.findOne({
       where: { email },
-      select: { email: true, password: true, id: true },
+      select: {email: true, password: true, id: true },
     });
 
     if (!user) {
@@ -65,6 +68,55 @@ export class AuthService {
     return {
       ...user,
       token: this.getJwtToken({ id: user.id }),
+    };
+  }
+
+  async update(id: string, updateUserDto: UpdateUserDto) {
+
+    const userData = updateUserDto;
+
+    const updatedUser = await this.userRepository.preload({
+      id: id,
+      ...userData, 
+    });
+  
+    if (!updatedUser) {
+      throw new NotFoundException(`User with id: ${id} not found`);
+    }
+  
+    await this.userRepository.save(updatedUser);
+  
+    return {
+      ...updatedUser,
+      token: this.getJwtToken({ id: updatedUser.id }),
+    };
+  }
+
+  async updatePassword(id: string, currentPassword: string, newPassword: string) {
+  
+  const user = await this.userRepository.findOne({where:  { id },select: { password: true }});
+
+  if (!bcrypt.compareSync(currentPassword, user.password)) {
+    throw new UnauthorizedException('La contraseña actual no es válida');
+  }
+
+  const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+  
+    const updatedUser = await this.userRepository.preload({
+      id: id,
+      password: hashedPassword,
+    });
+  
+    if (!updatedUser) {
+      throw new NotFoundException(`User with id: ${id} not found`);
+    }
+  
+    await this.userRepository.save(updatedUser);
+  
+    return {
+      ...updatedUser,
+      token: this.getJwtToken({ id: updatedUser.id }),
     };
   }
 
