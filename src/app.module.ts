@@ -4,7 +4,6 @@ import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
-import { ImagesModule } from './images/images.module';
 import { BillingModule } from './billing/billing.module';
 
 @Module({
@@ -21,8 +20,7 @@ import { BillingModule } from './billing/billing.module';
       synchronize: true,
     }),
     AuthModule,
-    ImagesModule,
-    BillingModule,
+    BillingModule
   ],
   controllers: [AppController],
   providers: [AppService],
