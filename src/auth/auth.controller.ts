@@ -1,12 +1,10 @@
-import { Body, Controller, Get, Post,Param, ParseUUIDPipe, Patch } from "@nestjs/common";
+import { Body, Controller, Get, Post,Param, ParseUUIDPipe, Patch, UseInterceptors, UploadedFile, MaxFileSizeValidator, FileTypeValidator, ParseFilePipe } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { CreateUserDto, LoginUserDto } from "./dto";
 import { Auth, GetUser } from "./decorators";
 import { ValidRoles } from "./interfaces";
 import { User } from "./entities/user.entity";
 import { UpdateUserDto } from './dto/update-user.dto';
-import { UpdatePasswordDto } from './dto/update-password.dto';
-
 
 @Controller('auth')
 export class AuthController {
@@ -26,16 +24,24 @@ export class AuthController {
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateUserDto: UpdateUserDto,
-  ) {
+    ) {
     return this.authService.update(id, updateUserDto);
   }
 
   @Patch('update-password/:id') 
   updatePassword(
     @Param('id', ParseUUIDPipe) id: string,
-   @Body() formData: { passUser: string, newPassUser: string }
-   ) {
-    return this.authService.updatePassword(id, formData.passUser, formData.newPassUser);
+    @Body() updateUserDto: UpdateUserDto
+  ) {
+    return this.authService.updatePassword(id, updateUserDto);
+  }
+
+  @Patch('update-imageIA/:id') 
+  updateImageIA(
+    @Param('id', ParseUUIDPipe) id: string,
+   @Body('url') url: string
+   ) {    
+    return this.authService.updateImageIA(id,url);
   }
 
   @Get('private')

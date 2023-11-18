@@ -31,6 +31,7 @@ export class AuthService {
 
       const user = this.userRepository.create({
         ...userData,
+        imageProfile:'https://res.cloudinary.com/dnkvrqfus/image/upload/v1699978001/user_ep0ons.jpg',
         password: bcrypt.hashSync(password, 10),
         billing: new Billing(),
       });
@@ -71,37 +72,33 @@ export class AuthService {
     };
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto) {
-
-    const userData = updateUserDto;
-
-    const updatedUser = await this.userRepository.preload({
+  async update(id: string,updateUserDto: UpdateUserDto) {
+  
+    const user = await this.userRepository.preload({
       id: id,
-      ...userData, 
+      ...updateUserDto,
     });
-  
-    if (!updatedUser) {
-      throw new NotFoundException(`User with id: ${id} not found`);
-    }
-  
-    await this.userRepository.save(updatedUser);
-  
+
+    if (!user) throw new NotFoundException(`User with id: ${id} not found`);
+    await this.userRepository.save(user);
+
     return {
-      ...updatedUser,
-      token: this.getJwtToken({ id: updatedUser.id }),
+      ...user,
+      token: this.getJwtToken({ id: user.id }),
     };
   }
 
-  async updatePassword(id: string, currentPassword: string, newPassword: string) {
+  async updatePassword(id: string, updateUserDto: UpdateUserDto) {
   
   const user = await this.userRepository.findOne({where:  { id },select: { password: true }});
 
-  if (!bcrypt.compareSync(currentPassword, user.password)) {
-    throw new UnauthorizedException('La contraseña actual no es válida');
+   if (!bcrypt.compareSync(updateUserDto.passUser, user.password)) {
+
+  throw new UnauthorizedException('La contraseña actual no es válida');
   }
 
-  const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(updateUserDto.newPassUser, saltRounds);
   
     const updatedUser = await this.userRepository.preload({
       id: id,
@@ -118,6 +115,29 @@ export class AuthService {
       ...updatedUser,
       token: this.getJwtToken({ id: updatedUser.id }),
     };
+  }
+  
+  async updateImageIA(id: string, imageIA: string) {
+      const user = await this.userRepository.findOne({
+      where:  { id }
+      });
+    if (user) {
+      if(user.imagesIA == null){
+        let newArray = []
+        newArray.push(imageIA)
+        const updatedUser = await this.userRepository.preload({
+          id: id,
+          imagesIA: newArray,
+        });
+        await this.userRepository.save(updatedUser);
+      }else{
+        user.imagesIA.push(imageIA);
+        
+        await this.userRepository.save(user);
+      }  
+    } else {
+     throw new NotFoundException(`Usuario con ID ${id} no encontrado blba`);
+   }
   }
 
   private getJwtToken(payload: JwtPayload) {

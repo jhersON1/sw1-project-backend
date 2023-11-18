@@ -40,6 +40,12 @@ export class User {
   })
   roles: string[];
 
+  @Column('text', { nullable: true }) 
+  imageProfile: string;
+
+  @Column('simple-array', { nullable: true }) 
+  imagesIA: string[];
+
   @OneToOne(() => Billing, (billing) => billing.user, {
     cascade: true,
     onDelete: 'CASCADE',
