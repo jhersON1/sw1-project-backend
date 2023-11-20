@@ -28,6 +28,12 @@ export class BillingService {
     });
   }
 
+  async findOneByUserId(userId: string) {
+    return this.billingRepository.findOne({
+      where: { user: { id: userId } },
+    });
+  }
+
   async update(id: string, updateBillingDto: UpdateBillingDto) {
     await this.billingRepository.update(id, updateBillingDto);
     return this.findOne(id);

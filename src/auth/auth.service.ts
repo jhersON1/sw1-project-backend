@@ -12,9 +12,8 @@ import { User } from './entities/user.entity';
 import { CreateUserDto, LoginUserDto } from './dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { JwtService } from '@nestjs/jwt';
-import { Billing } from "../billing/entities/billing.entity";
+import { Billing } from '../billing/entities/billing.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
-import passport from 'passport';
 
 @Injectable()
 export class AuthService {
@@ -31,7 +30,8 @@ export class AuthService {
 
       const user = this.userRepository.create({
         ...userData,
-        imageProfile:'https://res.cloudinary.com/dnkvrqfus/image/upload/v1699978001/user_ep0ons.jpg',
+        imageProfile:
+          'https://res.cloudinary.com/dnkvrqfus/image/upload/v1699978001/user_ep0ons.jpg',
         password: bcrypt.hashSync(password, 10),
         billing: new Billing(),
       });
@@ -51,12 +51,19 @@ export class AuthService {
     return await this.userRepository.find();
   }
 
+  async findOne(id: string) {
+    return await this.userRepository.findOne({
+      where: { id },
+      relations: ['billing'],
+    });
+  }
+
   async login(loginUserDto: LoginUserDto) {
     const { password, email } = loginUserDto;
 
     const user = await this.userRepository.findOne({
       where: { email },
-      select: {email: true, password: true, id: true },
+      select: { email: true, password: true, id: true },
     });
 
     if (!user) {
@@ -72,8 +79,7 @@ export class AuthService {
     };
   }
 
-  async update(id: string,updateUserDto: UpdateUserDto) {
-  
+  async update(id: string, updateUserDto: UpdateUserDto) {
     const user = await this.userRepository.preload({
       id: id,
       ...updateUserDto,
@@ -89,58 +95,62 @@ export class AuthService {
   }
 
   async updatePassword(id: string, updateUserDto: UpdateUserDto) {
-  
-  const user = await this.userRepository.findOne({where:  { id },select: { password: true }});
+    const user = await this.userRepository.findOne({
+      where: { id },
+      select: { password: true },
+    });
 
-   if (!bcrypt.compareSync(updateUserDto.passUser, user.password)) {
-
-  throw new UnauthorizedException('La contraseña actual no es válida');
-  }
+    if (!bcrypt.compareSync(updateUserDto.passUser, user.password)) {
+      throw new UnauthorizedException('La contraseña actual no es válida');
+    }
 
     const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(updateUserDto.newPassUser, saltRounds);
-  
+    const hashedPassword = await bcrypt.hash(
+      updateUserDto.newPassUser,
+      saltRounds,
+    );
+
     const updatedUser = await this.userRepository.preload({
       id: id,
       password: hashedPassword,
     });
-  
+
     if (!updatedUser) {
       throw new NotFoundException(`User with id: ${id} not found`);
     }
-  
+
     await this.userRepository.save(updatedUser);
-  
+
     return {
       ...updatedUser,
       token: this.getJwtToken({ id: updatedUser.id }),
     };
   }
-  
+
   async updateImageIA(id: string, imageIA: string) {
-      const user = await this.userRepository.findOne({
-      where:  { id }
-      });
+    const user = await this.userRepository.findOne({
+      where: { id },
+    });
     if (user) {
-      if(user.imagesIA == null){
-        let newArray = []
-        newArray.push(imageIA)
+      if (user.imagesIA == null) {
+        const newArray = [];
+        newArray.push(imageIA);
         const updatedUser = await this.userRepository.preload({
           id: id,
           imagesIA: newArray,
         });
         await this.userRepository.save(updatedUser);
-      }else{
+      } else {
         user.imagesIA.push(imageIA);
-        
+
         await this.userRepository.save(user);
-      }  
+      }
     } else {
-     throw new NotFoundException(`Usuario con ID ${id} no encontrado blba`);
-   }
+      throw new NotFoundException(`Usuario con ID ${id} no encontrado blba`);
+    }
   }
 
-  private getJwtToken(payload: JwtPayload) {
+  public getJwtToken(payload: JwtPayload) {
     const token = this.jwtService.sign(payload);
     return token;
   }

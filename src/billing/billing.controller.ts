@@ -22,6 +22,11 @@ export class BillingController {
     return this.billingService.findOne(id);
   }
 
+  @Get('/user/:id')
+  findOneByUserId(@Param('id') id: string) {
+    return this.billingService.findOneByUserId(id);
+  }
+
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateBillingDto: UpdateBillingDto) {
     return this.billingService.update(id, updateBillingDto);
