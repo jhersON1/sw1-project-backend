@@ -1,9 +1,18 @@
-import { Body, Controller, Get, Post,Param, ParseUUIDPipe, Patch, UseInterceptors, UploadedFile, MaxFileSizeValidator, FileTypeValidator, ParseFilePipe } from "@nestjs/common";
-import { AuthService } from "./auth.service";
-import { CreateUserDto, LoginUserDto } from "./dto";
-import { Auth, GetUser } from "./decorators";
-import { ValidRoles } from "./interfaces";
-import { User } from "./entities/user.entity";
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Request,
+} from '@nestjs/common';
+import { AuthService } from './auth.service';
+import { CreateUserDto, LoginUserDto } from './dto';
+import { Auth, GetUser } from './decorators';
+import { ValidRoles } from './interfaces';
+import { User } from './entities/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('auth')
@@ -24,24 +33,24 @@ export class AuthController {
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() updateUserDto: UpdateUserDto,
-    ) {
+  ) {
     return this.authService.update(id, updateUserDto);
   }
 
-  @Patch('update-password/:id') 
+  @Patch('update-password/:id')
   updatePassword(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateUserDto: UpdateUserDto
+    @Body() updateUserDto: UpdateUserDto,
   ) {
     return this.authService.updatePassword(id, updateUserDto);
   }
 
-  @Patch('update-imageIA/:id') 
+  @Patch('update-imageIA/:id')
   updateImageIA(
     @Param('id', ParseUUIDPipe) id: string,
-   @Body('url') url: string
-   ) {    
-    return this.authService.updateImageIA(id,url);
+    @Body('url') url: string,
+  ) {
+    return this.authService.updateImageIA(id, url);
   }
 
   @Get('private')
@@ -50,11 +59,26 @@ export class AuthController {
     return {
       ok: true,
       user,
-    }
+    };
   }
 
   @Get()
   findAll() {
     return this.authService.findAll();
+  }
+
+  @Auth()
+  @Get('check-token')
+  checkToken(@Request() req: Request) {
+    const user = req['user'] as User;
+    return {
+      user,
+      token: this.authService.getJwtToken({ id: user.id }),
+    };
+  }
+
+  @Get(':id')
+  findById(@Param('id', ParseUUIDPipe) id: string) {
+    return this.authService.findOne(id);
   }
 }
