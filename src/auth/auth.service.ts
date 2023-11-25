@@ -32,6 +32,7 @@ export class AuthService {
         ...userData,
         imageProfile:
           'https://res.cloudinary.com/dnkvrqfus/image/upload/v1699978001/user_ep0ons.jpg',
+        imagesIA: [],
         password: bcrypt.hashSync(password, 10),
         billing: new Billing(),
       });
@@ -129,25 +130,30 @@ export class AuthService {
 
   async updateImageIA(id: string, imageIA: string) {
     const user = await this.userRepository.findOne({
-      where: { id },
-    });
+      where:  { id }
+      });
     if (user) {
-      if (user.imagesIA == null) {
-        const newArray = [];
-        newArray.push(imageIA);
-        const updatedUser = await this.userRepository.preload({
-          id: id,
-          imagesIA: newArray,
-        });
-        await this.userRepository.save(updatedUser);
-      } else {
-        user.imagesIA.push(imageIA);
-
+        user.imagesIA.push(imageIA);      
         await this.userRepository.save(user);
-      }
     } else {
-      throw new NotFoundException(`Usuario con ID ${id} no encontrado blba`);
-    }
+     throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
+   }
+  }
+
+  async deleteImageIA(id: string, imageIA: string){
+    const user = await this.userRepository.findOne({
+      where:  { id }
+      });
+    if (user){
+      const imageIndex = user.imagesIA.indexOf(imageIA);
+      if (imageIndex !== -1) {
+        user.imagesIA.splice(imageIndex, 1);
+      }
+      await this.userRepository.save(user);
+    
+    } else {
+     throw new NotFoundException(`Usuario con ID ${id} no encontrado`);
+   }
   }
 
   public getJwtToken(payload: JwtPayload) {

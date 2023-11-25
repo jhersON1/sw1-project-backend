@@ -6,7 +6,7 @@ import {
   Param,
   ParseUUIDPipe,
   Patch,
-  Request,
+  Request
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto, LoginUserDto } from './dto';
@@ -51,6 +51,14 @@ export class AuthController {
     @Body('url') url: string,
   ) {
     return this.authService.updateImageIA(id, url);
+  }
+
+  @Patch('delete-imageIA/:id')
+  deleteImageIA(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body('url') url: string,
+  ) {
+    return this.authService.deleteImageIA(id, url);
   }
 
   @Get('private')
